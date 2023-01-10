@@ -1,5 +1,5 @@
 # lima-templates
 
 ```
-limactl start --name=docker ~/projects/lima-templates/docker.yaml --tty=false
+limactl start --name=docker docker.yaml --tty=false
 ```

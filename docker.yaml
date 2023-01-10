@@ -8,6 +8,10 @@ images:
 cpus: 4
 memory: "10GiB"
 
+networks:
+- lima: shared
+  macAddress: "de:ad:be:ef:00:01"
+
 mounts:
 - location: "~"
   writable: true
@@ -86,8 +90,6 @@ hostResolver:
   hosts:
     host.docker.internal: host.lima.internal
 portForwards:
-- guestPort: 443
-- guestPort: 80
 - guestSocket: "/var/run/docker.sock"
   hostSocket: "{{.Dir}}/sock/docker.sock"
 message: |
