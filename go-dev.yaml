@@ -1,5 +1,6 @@
 env:
   GOLANG_VERSION: 1.22
+  GINKGO_VERSION: v1.16.5
   K8S_MINOR_VERSION: v1.30
   KUBECTL_VERSION: 1.30.1-1.1
   HELM_VERSION: 3.14.2-1
@@ -51,9 +52,6 @@ provision:
     # Hack to make ssh port forward able to access docker
     chmod 777 /var/run/docker.sock
 
-    # Allow direct user access to docker
-    sudo usermod -aG docker $USER
-
     # Hit max FDs sometimes with KIND
     sysctl fs.inotify.max_user_instances=1280
     sysctl fs.inotify.max_user_watches=655360
@@ -83,10 +81,31 @@ provision:
 # Install Go Development environment
 - mode: system
   script: |
-    apt install -y golang-$GOLANG_VERSION
+    apt install -y make golang-$GOLANG_VERSION
     # Handle go PATH handling for bash
     echo "export PATH=\$PATH:/usr/lib/go-$GOLANG_VERSION/bin/" > /etc/profile.d/go-path.sh
     chmod +x /etc/profile.d/go-path.sh
+
+# Install Go development dependencies for Cilium
+# See https://docs.cilium.io/en/stable/contributing/development/dev_setup/
+- mode: system
+  script: |
+    go install github.com/onsi/ginkgo/ginkgo@$GINKGO_VERSION
+    go install github.com/cloudflare/cfssl/cmd/cfssl@latest
+    go install github.com/cloudflare/cfssl/cmd/cfssljson@latest
+    go install github.com/mfridman/tparse@latest
+    go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+
+    apt install -y python3-pip
+
+    # Cilium CLI: https://docs.cilium.io/en/stable/gettingstarted/k8s-install-default/#install-the-cilium-cli
+    CILIUM_CLI_VERSION=$(curl -s https://raw.githubusercontent.com/cilium/cilium-cli/main/stable.txt)
+    CLI_ARCH=amd64
+    if [ "$(uname -m)" = "aarch64" ]; then CLI_ARCH=arm64; fi
+    curl -L --fail --remote-name-all https://github.com/cilium/cilium-cli/releases/download/${CILIUM_CLI_VERSION}/cilium-linux-${CLI_ARCH}.tar.gz{,.sha256sum}
+    sha256sum --check cilium-linux-${CLI_ARCH}.tar.gz.sha256sum
+    sudo tar xzvfC cilium-linux-${CLI_ARCH}.tar.gz /usr/local/bin
+    rm cilium-linux-${CLI_ARCH}.tar.gz{,.sha256sum}
 
 # Improve Shell Experience
 - mode: system
@@ -99,6 +118,9 @@ provision:
 
 - mode: user
   script: |
+    # Allow direct user access to docker
+    sudo usermod -aG docker $USER
+
     # Change default shell to fish:
     sudo chsh -s /usr/bin/fish $USER
 
@@ -135,7 +157,7 @@ probes:
 - script: |
     #!/bin/bash
     set -eux -o pipefail
-    if ! timeout 60s bash -c "until command -v go >/dev/null 2>&1; do sleep 3; done"; then
+    if ! timeout 60s bash -c "until command -v /usr/lib/go-$GOLANG_VERSION/bin/go >/dev/null 2>&1; do sleep 3; done"; then
       echo >&2 "golang is not installed yet"
       exit 1
     fi
