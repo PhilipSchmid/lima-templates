@@ -20,10 +20,16 @@ networks:
   macAddress: "de:ad:be:ef:00:02"
 
 mounts:
-- location: "~"
+- location: "~/git"
   writable: true
-- location: "/tmp/lima"
-  writable: true
+  sshfs:
+    cache: true
+- location: "~/.config/fish"
+  writable: false
+- location: "~/.config/yamllint"
+  writable: false
+- location: "~/.vim"
+  writable: false
 # containerd is managed by Docker, not by Lima, so the values are set to false here.
 containerd:
   system: false
@@ -136,7 +142,8 @@ provision:
     rm -f /home/$USER.linux/.config/fish/config.fish
     ln -s /Users/$USER/.config/fish/config.fish /home/$USER.linux/.config/fish/
     # Link existing vim config:
-    ln -s /Users/$USER/.vimrc /home/$USER.linux/
+    mkdir /home/$USER.linux/.vim
+    ln -s /Users/$USER/.vim/vimrc /home/$USER.linux/.vim/
     mkdir /home/$USER.linux/.config/yamlint
     # Install Vundle (https://github.com/VundleVim/Vundle.vim?tab=readme-ov-file#quick-start):
     git clone https://github.com/VundleVim/Vundle.vim.git ~/.vim/bundle/Vundle.vim
