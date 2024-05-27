@@ -35,6 +35,7 @@ Create/edit `/etc/bootptab` and add the following lines:
 # hostname      hwtype  hwaddr              ipaddr          bootfile
 docker          1       de:ad:be:ef:00:01   192.168.105.101
 go-dev          1       de:ad:be:ef:00:02   192.168.105.102
+go-dev-vz       1       de:ad:be:ef:00:03   192.168.105.103
 ```
 
 Start/reload the the DHCP daemon:
