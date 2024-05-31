@@ -83,7 +83,7 @@ provision:
 
     # Install kubectl and helm
     apt update
-    apt install -y kubectl=$KUBECTL_VERSION helm=$HELM_VERSION kubecolor kubectx kubetail
+    apt install -y kubectl=$KUBECTL_VERSION helm=$HELM_VERSION kubecolor kubectx kubetail fzf
 
     # Install KIND
     curl -Lo ./kind https://kind.sigs.k8s.io/dl/$KIND_VERSION/kind-linux-$(dpkg --print-architecture)
